@@ -2,7 +2,7 @@ import { body } from "express-validator";
 
 export const manualInvoiceValidation = [
   /* CUSTOMER NAME */
-  body("customerName").notEmpty().withMessage("Customer name is required"),
+  body("customer").notEmpty().withMessage("Customer is required"),
 
   /* INVOICE NUMBER */
   body("invoiceNumber").notEmpty().withMessage("Invoice number is required"),

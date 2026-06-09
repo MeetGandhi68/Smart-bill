@@ -2,6 +2,8 @@ import express, { Request, Response } from "express";
 
 import Invoice from "../models/Invoice";
 
+import Customer from "../models/Customer";
+
 import { validationResult } from "express-validator";
 
 import { manualInvoiceValidation } from "../middleware/validation.middleware";
@@ -44,9 +46,8 @@ router.post(
   manualInvoiceValidation,
   async (req: Request, res: Response) => {
     try {
-      const { customerName, invoiceNumber, billDate, items, gstAmount, notes } =
+      const { customer, invoiceNumber, billDate, items, gstAmount, notes } =
         req.body;
-
       /* VALIDATION */
       const errors = validationResult(req);
 
@@ -54,6 +55,16 @@ router.post(
         return res.status(400).json({
           success: false,
           errors: errors.array(),
+        });
+      }
+
+      /* GET CUSTOMER DETAILS */
+      const customerData = await Customer.findById(customer);
+
+      if (!customerData) {
+        return res.status(404).json({
+          success: false,
+          message: "Customer not found",
         });
       }
 
@@ -79,7 +90,8 @@ router.post(
 
       /* SAVE */
       const invoice = await Invoice.create({
-        customerName,
+        customer,
+        customerName: customerData.name,
         invoiceNumber,
         billDate,
         items: formattedItems,
@@ -151,6 +163,32 @@ router.get("/search", protect, async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Search failed",
+    });
+  }
+});
+
+/* CUSTOMER INVOICES */
+router.get("/customer/:customerId", protect, async (req, res) => {
+  try {
+    const customerId = req.params.customerId as string;
+
+    const invoices = await Invoice.find({
+      customer: customerId,
+    }).sort({
+      createdAt: -1,
+    });
+
+    return res.status(200).json({
+      success: true,
+      count: invoices.length,
+      invoices,
+    });
+  } catch (error) {
+    console.log(error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch customer invoices",
     });
   }
 });
