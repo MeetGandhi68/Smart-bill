@@ -20,7 +20,7 @@ router.post(
     console.log("NEW OCR ROUTE HIT");
 
     try {
-      if (!req.file) {
+      if (!(req as any).file) {
         return res.status(400).json({
           success: false,
           message: "No file uploaded",
@@ -28,7 +28,7 @@ router.post(
       }
 
       /* PREPROCESS IMAGE */
-      const processedImagePath = await preprocessImage(req.file.path);
+      const processedImagePath = await preprocessImage((req as any).file.path);
 
       /* OCR TEXT */
       const extractedText = await extractTextFromImage(processedImagePath);
@@ -77,11 +77,11 @@ router.post(
 
         items: parsedData.items,
 
-        totalAmount: Number(parsedData.totalAmount.replace(/,/g, "")) || 0,
+        totalAmount: Number(parsedData.totalAmount?.replace(/,/g, "")) || 0,
 
         rawText: extractedText,
 
-        fileUrl: req.file.path,
+        fileUrl: (req as any).file.path,
       });
 
       console.log("INVOICE SAVED:");
