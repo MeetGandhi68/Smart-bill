@@ -1,3 +1,5 @@
+import mongoose from "mongoose";
+
 import express, { Request, Response } from "express";
 
 import Invoice from "../models/Invoice";
@@ -171,6 +173,13 @@ router.get("/search", protect, async (req, res) => {
 router.get("/customer/:customerId", protect, async (req, res) => {
   try {
     const customerId = req.params.customerId as string;
+
+    if (!mongoose.Types.ObjectId.isValid(customerId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid customer ID",
+      });
+    }
 
     const invoices = await Invoice.find({
       customer: customerId,
